@@ -3,13 +3,14 @@
 let
 
   inherit (lib) mkIf mkOption types;
-  inherit (pkgs) fetchurl;
+  inherit (pkgs) stdenv fetchurl;
   inherit (pkgs.stdenv) mkDerivation;
 
   cfg = config.kibo.checkmkAgent;
 
   agent = mkDerivation {
     name = "checkmk-agent";
+    version = "1.4.0p2";
 
     src = fetchurl {
       url = "https://mon.kibo.li/kibo/check_mk/agents/check_mk_agent.linux";
@@ -22,6 +23,47 @@ let
       cp $src $out/bin/check_mk_agent
       chmod +x $out/bin/check_mk_agent
       patchShebangs $out/bin/check_mk_agent
+    '';
+  };
+
+  mysqlPlugin = mkDerivation {
+    name = "checkmk-agent-mysql";
+    version = "1.4.0p2";
+
+    src = fetchurl {
+      url = "https://mon.kibo.li/kibo/check_mk/agents/plugins/mk_mysql";
+      sha256 = "00w0x8pylwwidbs5s0nl4knxx6rgds67k3w1h3q314x8hwxzx9m5";
+    };
+
+    builder = builtins.toFile "builder.sh" ''
+      source $stdenv/setup
+      mkdir -p $out/bin
+      cp $src $out/bin/mk_mysql
+      sed -i 's#--defaults-extra-file=\$MK_CONFDIR/mysql.cfg##g' $out/bin/mk_mysql
+      chmod +x $out/bin/mk_mysql
+      patchShebangs $out/bin/mk_mysql
+    '';
+  };
+
+  agentWithPlugins = mkDerivation {
+    name = "checkmk-agent-full";
+
+    inherit agent mysqlPlugin;
+
+    builder = builtins.toFile "builder.sh" ''
+      source $stdenv/setup
+
+      mkdir -p $out/bin $out/lib/check_mk/plugins
+
+      ln -s $mysqlPlugin/bin/mk_mysql $out/lib/check_mk/plugins/mk_mysql
+
+      cat > $out/bin/check_mk_agent <<EOF
+      #! $shell
+      export MK_LIBDIR="$out/lib/check_mk"
+      exec $agent/bin/check_mk_agent "$@"
+      EOF
+
+      chmod +x $out/bin/check_mk_agent
     '';
   };
 
@@ -40,7 +82,7 @@ in
 
     agent = mkOption {
       type = types.package;
-      default = agent;
+      default = agentWithPlugins;
     };
 
   };
