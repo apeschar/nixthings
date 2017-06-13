@@ -150,7 +150,7 @@ in
     environment.systemPackages = [ configuredAgent ];
 
     users.users.root.openssh.authorizedKeys.keys = [
-      ''command="${agent}/bin/check_mk_agent",no-port-forwarding,no-x11-forwarding,no-agent-forwarding ${sshKey}''
+      ''command="${configuredAgent}/bin/check_mk_agent",no-port-forwarding,no-x11-forwarding,no-agent-forwarding ${sshKey}''
     ];
 
   };
