@@ -85,10 +85,30 @@ let
     '';
   };
 
-  buildAgent = agent: plugins: configFiles: buildEnv {
+  buildLocalCheck = name: check: mkDerivation {
+    inherit name;
+
+    builder = pkgs.writeScript "builder.sh" ''
+      source $stdenv/setup
+
+      out=$out/lib/check_mk/local
+
+      mkdir -p $out
+      cp ${pkgs.writeScript "check.sh" check.script} $out/$name
+      chmod +x $out/$name
+    '';
+  };
+
+  buildLocalChecks = localChecks: mapAttrsToList buildLocalCheck localChecks;
+
+  buildAgent = agent: plugins: configFiles: localChecks: buildEnv {
     name = "checkmk-agent-full";
 
-    paths = [ agent ] ++ plugins ++ [ (buildConfiguration configFiles) ];
+    paths =
+      [ agent ] ++
+      plugins ++
+      [ (buildConfiguration configFiles) ] ++
+      (buildLocalChecks localChecks);
 
     pathsToLink = [ "/bin" "/lib" "/etc" ];
 
@@ -102,9 +122,17 @@ let
     '';
   };
 
-  configuredAgent = buildAgent cfg.agent cfg.plugins cfg.configFiles;
+  configuredAgent = buildAgent cfg.agent cfg.plugins cfg.configFiles cfg.localChecks;
 
   sshKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDcOPSnFqxA0krADDHhuNyNEcmO4GE2Jf/mYqKucKu4KRCeEAeFxcpQWs+EE0TvVdBB8kbNN17vxOSPWEUBlrF/zoRov7ySEwmzz4+BY62L8Hv4PK1a4UfC6EC1I7AmExCeYD1aCToMckm8DIIibUAGV7OPX/VwkgGjjpHVGxZB0ZIcs6LoewlRi9y/BqtY97ImIEO1Jo4Y0Gc+gAy1CUdOL6L91dkAhU68W/cnVYYCnWzfmxmpjR90mKcgmgaux3I84uOb8/xd/gue9SUUq7x1X43WKPI5TD+oVRdXxaNXs8e9OT4H0iC1dpvxtDRIijrdcim2i0ILa1II1yb96sHX3BxcWsytwIZNSud8cBsaYUb9ZbHCwnw+SHxK0ErZ2lESGrM4XclgJ0Ph9Rkg/B8L+doyEEmWOHrGYknVsl7rAo53O2NhzvByIoy6CSnoQ4e/eMqox3XJLkImthf0yvC80K8w5+aTdhCDFO+DLxcl1xGPUG/2o6eymlzTnaVoHes0UC7RzZAQWTVR0geBA89lGoAp1bQ4bL+EUJITB6x40DHhjM3IZjqn3yXjNbgkJTVcWF09CZwDpGTfMfb2pif/SsNjTRYCzkVYdaIKV4+onb9rjpmzkfgscfcOIQA4kFQmVG8+V9rKDXLFv9Lcf8S7RGNyDfdk3d+ZV8//KXSjnw== kibo@mon.kibo.li";
+
+  localCheckOptions = {
+    options = {
+      script = mkOption {
+        type = types.string;
+      };
+    };
+  };
 
 in
 
@@ -141,6 +169,11 @@ in
           ]
         '';
       };
+    };
+
+    localChecks = mkOption {
+      type = types.attrsOf (types.submodule localCheckOptions);
+      default = {};
     };
 
   };
