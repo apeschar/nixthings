@@ -3,7 +3,7 @@
 let
 
   inherit (lib) mkIf mkOption types concatStrings mapAttrsToList;
-  inherit (pkgs) stdenv fetchurl;
+  inherit (pkgs) buildEnv makeWrapper stdenv fetchurl;
   inherit (pkgs.stdenv) mkDerivation;
 
   cfg = config.kibo.checkmkAgent;
@@ -26,9 +26,26 @@ let
     '';
   };
 
+  buildPlugin = { name, version, src, postBuild ? "", buildInputs ? [] }: mkDerivation {
+    inherit name version src buildInputs;
+
+    builder = builtins.toFile "builder.sh" ''
+      source $stdenv/setup
+
+      out=$out/lib/check_mk/plugins
+      mkdir -p $out
+
+      cp $src $out/$name
+      chmod +x $out/$name
+      patchShebangs $out/$name
+
+      source ${builtins.toFile "postBuild.sh" postBuild}
+    '';
+  };
+
   plugins = {
-    mysql = mkDerivation {
-      name = "checkmk-agent-mysql";
+    mysql = buildPlugin {
+      name = "mk_mysql";
       version = "1.4.0p2";
 
       src = fetchurl {
@@ -36,18 +53,13 @@ let
         sha256 = "00w0x8pylwwidbs5s0nl4knxx6rgds67k3w1h3q314x8hwxzx9m5";
       };
 
-      builder = builtins.toFile "builder.sh" ''
-        source $stdenv/setup
-        mkdir -p $out/bin
-        cp $src $out/bin/mk_mysql
-        sed -i 's#--defaults-extra-file=\$MK_CONFDIR/mysql.cfg##g' $out/bin/mk_mysql
-        chmod +x $out/bin/mk_mysql
-        patchShebangs $out/bin/mk_mysql
+      postBuild = ''
+        sed -i 's#--defaults-extra-file=\$MK_CONFDIR/mysql.cfg##g' $out/$name
       '';
     };
 
-    rabbitmq = mkDerivation {
-      name = "checkmk-agent-rabbitmq";
+    rabbitmq = buildPlugin {
+      name = "mk_rabbitmq";
       version = "8123feb";
 
       src = fetchurl {
@@ -56,49 +68,37 @@ let
       };
 
       buildInputs = [ pkgs.python ];
-
-      builder = builtins.toFile "builder.sh" ''
-        source $stdenv/setup
-        mkdir -p $out/bin
-        cp $src $out/bin/mk_rabbitmq
-        chmod +x $out/bin/mk_rabbitmq
-        patchShebangs $out/bin/mk_rabbitmq
-      '';
     };
   };
 
-  buildAgent = agent: plugins: configFiles: mkDerivation {
-    name = "checkmk-agent-full";
-
-    inherit agent;
-    inherit plugins;
+  buildConfiguration = configFiles: mkDerivation {
+    name = "checkmk-agent-config";
 
     builder = pkgs.writeScript "builder.sh" ''
       source $stdenv/setup
 
-      mkdir -p \
-        $out/bin \
-        $out/lib/check_mk/plugins \
-        $out/etc/check_mk
-
-      for plugin in $plugins; do
-        for f in $plugin/bin/*; do
-          ln -s $f $out/lib/check_mk/plugins/''${f##*/}
-        done
-      done
+      mkdir -p $out/etc/check_mk
 
       ${concatStrings (mapAttrsToList (filename: content: ''
         cp ${pkgs.writeText filename content} $out/etc/check_mk/'${filename}'
       '') configFiles)}
+    '';
+  };
 
-      cat > $out/bin/check_mk_agent <<EOF
-      #! $shell
-      export MK_LIBDIR="$out/lib/check_mk"
-      export MK_CONFDIR="$out/etc/check_mk"
-      exec $agent/bin/check_mk_agent "\$@"
-      EOF
+  buildAgent = agent: plugins: configFiles: buildEnv {
+    name = "checkmk-agent-full";
 
-      chmod +x $out/bin/check_mk_agent
+    paths = [ agent ] ++ plugins ++ [ (buildConfiguration configFiles) ];
+
+    pathsToLink = [ "/bin" "/lib" "/etc" ];
+
+    buildInputs = [ makeWrapper ];
+
+    postBuild = ''
+      wrapProgram \
+        $out/bin/check_mk_agent \
+        --set MK_LIBDIR "$out/lib/check_mk" \
+        --set MK_CONFDIR "$out/etc/check_mk"
     '';
   };
 
