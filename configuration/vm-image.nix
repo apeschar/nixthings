@@ -3,7 +3,6 @@
 {
 
   imports = [
-    <nixpkgs/nixos/modules/virtualisation/grow-partition.nix>
     <nixpkgs/nixos/modules/profiles/qemu-guest.nix>
   ];
 
@@ -14,7 +13,7 @@
 
   boot.kernelParams = [ "console=ttyS0" ];
 
-  virtualisation.growPartition = true;
+  boot.growPartition = true;
 
   boot.loader.grub.device = "/dev/vda";
   boot.loader.timeout = 0;
