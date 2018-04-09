@@ -14,7 +14,7 @@ let
 
     src = fetchurl {
       url = "https://mon.kibo.li/kibo/check_mk/agents/check_mk_agent.linux";
-      sha256 = "01zv7xdzpffjjy1aakhikpbvvqdy8lsy10jk7jjd6v6fjqla5v9l";
+      sha256 = "0yg3z3bzq9f5fg54ym6807ik8akkda8wlzx5r183i7g4p1ikqv97";
     };
 
     builder = builtins.toFile "builder.sh" ''
