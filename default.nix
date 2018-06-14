@@ -7,6 +7,8 @@
     ./modules/backup.nix
     ./modules/checkmk-agent.nix
     ./modules/ssh-keys.nix
+    ./modules/tools.nix
+    ./modules/zsh.nix
   ];
 
 }
