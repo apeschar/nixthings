@@ -10,11 +10,11 @@ let
 
   agent = mkDerivation {
     name = "checkmk-agent";
-    version = "1.4.0p2";
+    version = "1.4.0p33";
 
     src = fetchurl {
       url = "https://mon.kibo.li/kibo/check_mk/agents/check_mk_agent.linux";
-      sha256 = "0yg3z3bzq9f5fg54ym6807ik8akkda8wlzx5r183i7g4p1ikqv97";
+      sha256 = "0x68vjn694j6vzf18a74m7n002g7x5dv79c1yr9hih3iykaahqc3";
     };
 
     builder = builtins.toFile "builder.sh" ''
