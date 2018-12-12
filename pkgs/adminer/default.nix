@@ -2,7 +2,7 @@
 
 let
 
-  version = "4.6.2";
+  version = "4.7.0";
 
 in stdenv.mkDerivation {
 
@@ -11,13 +11,23 @@ in stdenv.mkDerivation {
   src = fetchurl {
     name = "adminer.php";
     url = "https://github.com/vrana/adminer/releases/download/v${version}/adminer-${version}.php";
-    sha256 = "1fbmamgl7ggah6jy6i442bqw4zj9l0djq9zwg21jh50jxn3mwgib";
+    sha256 = "1qq2g7rbfh2vrqfm3g0bz0qs057b049n0mhabnsbd1sgnpvnc5z7";
   };
 
   builder = builtins.toFile "builder.sh" ''
     source $stdenv/setup
     mkdir $out
-    cp $src $out/adminer.php
+    cat ${builtins.toFile "adminer.php.head" ''
+      <?php
+      function adminer_object() {
+        return new class extends Adminer {
+          public function login($login, $password) {
+            return true;
+          }
+        };
+      }
+      ?>
+    ''} $src > $out/adminer.php
   '';
 
 }

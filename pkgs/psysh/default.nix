@@ -2,7 +2,7 @@
 
 let
 
-  version = "0.9.6";
+  version = "0.9.9";
 
 in
 
@@ -15,7 +15,7 @@ stdenv.mkDerivation {
 
   src = fetchurl {
     url = "https://github.com/bobthecow/psysh/releases/download/v${version}/psysh-v${version}.tar.gz";
-    sha256 = "06icmyn7v229mpfplqj76kjnp1gh4ns0nrxa7bsckyqhzi425kc6";
+    sha256 = "0knbib0afwq2z5fc639ns43x8pi3kmp85y13bkcl00dhvf46yinw";
   };
 
   builder = builtins.toFile "builder.sh" ''
@@ -31,6 +31,7 @@ stdenv.mkDerivation {
     ''}
     mkdir -p $out/bin
     mv psysh.phar $out/bin/psysh
+    chmod +x $out/bin/psysh
   '';
 
   meta = with stdenv.lib; {
