@@ -10,8 +10,8 @@ in stdenv.mkDerivation {
 
   src = fetchurl {
     name = "adminer.php";
-    url = "https://github.com/vrana/adminer/releases/download/v${version}/adminer-${version}.php";
-    sha256 = "1qq2g7rbfh2vrqfm3g0bz0qs057b049n0mhabnsbd1sgnpvnc5z7";
+    url = "https://github.com/vrana/adminer/releases/download/v${version}/adminer-${version}-mysql-en.php";
+    sha256 = "06jcx9q0zdi6i84d0kh4w4gdy4ba11by97hl1xiqxli8yczgjyd4";
   };
 
   builder = builtins.toFile "builder.sh" ''
