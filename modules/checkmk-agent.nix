@@ -50,7 +50,7 @@ let
 
       src = fetchurl {
         url = "https://mon.kibo.li/kibo/check_mk/agents/plugins/mk_mysql";
-        sha256 = "00w0x8pylwwidbs5s0nl4knxx6rgds67k3w1h3q314x8hwxzx9m5";
+        sha256 = "1m49v1r00w5b6i34kriddz52f10r09gidfawa59rh916z48bpydr";
       };
 
       postBuild = ''
