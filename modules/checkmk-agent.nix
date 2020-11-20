@@ -10,7 +10,7 @@ let
 
   agent = mkDerivation {
     name = "checkmk-agent";
-    version = "1.5.0p9";
+    version = "1.6.0p18";
 
     src = fetchurl {
       url = "https://mon.kibo.li/kibo/check_mk/agents/check_mk_agent.linux";
@@ -46,7 +46,7 @@ let
   plugins = {
     mysql = buildPlugin {
       name = "mk_mysql";
-      version = "1.4.0p2";
+      version = "1.6.0p18";
 
       src = fetchurl {
         url = "https://mon.kibo.li/kibo/check_mk/agents/plugins/mk_mysql";
