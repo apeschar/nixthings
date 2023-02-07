@@ -14,6 +14,7 @@ with lib; {
 
       pool = mkOption {
         type = types.str;
+        default = "rpool";
         description = ''
           ZFS pool to back up
         '';
