@@ -7,7 +7,7 @@
     kibo.restic = {
       enable = mkOption {
         type = types.bool;
-        default = true;
+        default = false;
       };
 
       pool = mkOption {
