@@ -1,8 +1,10 @@
 {
   config,
   pkgs,
+  lib,
   ...
-}: {
+}:
+with lib; {
   options = {
     kibo.restic = {
       enable = mkOption {
