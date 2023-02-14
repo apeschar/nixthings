@@ -83,7 +83,7 @@ with lib; {
           ];
           EnvironmentFile = cfg.secrets;
           ExecStart = pkgs.lib.escapeShellArgs ["${pkgs.runitor}/bin/runitor" script];
-          ExecStartPost = pkgs.lib.escapeShellArgs ["${pkgs.zfs}/bin/zfs" "destroy" "-f" "-r" "${pool}@${snapshotName}"];
+          ExecStopPost = pkgs.lib.escapeShellArgs ["${pkgs.zfs}/bin/zfs" "destroy" "-f" "-r" "${pool}@${snapshotName}"];
         };
         startAt = "hourly";
       };
