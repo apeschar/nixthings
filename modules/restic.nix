@@ -12,6 +12,11 @@ with lib; {
         default = false;
       };
 
+      package = mkOption {
+        type = types.package;
+        default = pkgs.restic;
+      };
+
       pool = mkOption {
         type = types.str;
         default = "rpool";
@@ -72,7 +77,7 @@ with lib; {
           restic backup --cache-dir /run/restic --verbose ${pkgs.lib.escapeShellArg pool}
         '';
       in {
-        path = with pkgs; [zfs mount util-linux restic];
+        path = with pkgs; [zfs mount util-linux cfg.package];
         serviceConfig = {
           Type = "oneshot";
           PrivateMounts = true;
@@ -92,8 +97,21 @@ with lib; {
         serviceConfig = {
           Type = "oneshot";
           EnvironmentFile = cfg.secrets;
-          ExecStart = pkgs.lib.escapeShellArgs ["${pkgs.restic}/bin/restic" "init"];
+          ExecStart = pkgs.lib.escapeShellArgs ["${cfg.package}/bin/restic" "init"];
         };
       };
+
+      environment.systemPackages = [
+        cfg.package
+        (pkgs.writeShellScriptBin "restic-authenticated" ''
+          set -euo pipefail
+
+          set -a
+          source /run/secrets/restic
+          set +a
+
+          exec ${cfg.package}/bin/restic "$@"
+        '')
+      ];
     };
 }
