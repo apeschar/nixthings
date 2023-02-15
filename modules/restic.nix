@@ -36,6 +36,11 @@ with lib; {
           - CHECK_UUID
         '';
       };
+
+      excludeFilesystems = mkOption {
+        type = types.listOf types.str;
+        default = [];
+      };
     };
   };
 
@@ -63,6 +68,10 @@ with lib; {
           fi
 
           zfs list -H -o name -r ${pkgs.lib.escapeShellArg pool} | while read dataset; do
+            ${pkgs.lib.concatMapStringsSep "\n" (fs: ''
+              if [[ $dataset = ${pkgs.lib.escapeShellArg fs} ]]; then continue; fi
+            '')
+            cfg.excludeFilesystems}
             ramfs="/tmp/$(uuidgen)"
             mkdir "$ramfs"
             mount -t ramfs ramfs "$ramfs"
