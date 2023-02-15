@@ -72,6 +72,7 @@ with lib; {
               if [[ $dataset = ${pkgs.lib.escapeShellArg fs} ]]; then continue; fi
             '')
             cfg.excludeFilesystems}
+            echo "Mounting filesystem: $dataset" >&2
             ramfs="/tmp/$(uuidgen)"
             mkdir "$ramfs"
             mount -t ramfs ramfs "$ramfs"
