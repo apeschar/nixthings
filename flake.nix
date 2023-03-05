@@ -1,6 +1,10 @@
 {
   inputs = {
-    checkmk.url = "github:BenediktSeidl/nixos-check_mk_agent-overlay";
+    nixpkgs.url = "nixpkgs/nixos-unstable";
+    checkmk = {
+      url = "github:BenediktSeidl/nixos-check_mk_agent-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
