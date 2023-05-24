@@ -84,7 +84,7 @@ with lib; {
 
           cd /tmp
 
-          restic backup --cache-dir /run/restic --verbose ${pkgs.lib.escapeShellArg pool}
+          restic backup --cache-dir /var/cache/restic --verbose ${pkgs.lib.escapeShellArg pool}
         '';
       in {
         path = with pkgs; [zfs mount util-linux cfg.package];
@@ -92,7 +92,7 @@ with lib; {
           Type = "oneshot";
           PrivateMounts = true;
           PrivateTmp = true;
-          RuntimeDirectory = "restic";
+          CacheDirectory = "restic";
           Environment = [
             "HC_API_URL=https://ping.kibo.li"
           ];
