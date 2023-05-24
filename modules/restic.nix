@@ -101,6 +101,8 @@ with lib; {
           ExecStopPost = pkgs.lib.escapeShellArgs ["${pkgs.zfs}/bin/zfs" "destroy" "-f" "-r" "${pool}@${snapshotName}"];
         };
         startAt = "hourly";
+        stopIfChanged = false;
+        restartIfChanged = false;
       };
 
       systemd.services.restic-init = {
