@@ -8,9 +8,9 @@
   };
 
   outputs = {
-    self,
     nixpkgs,
     checkmk,
+    ...
   }: {
     nixosModule = {
       imports = [
@@ -20,6 +20,9 @@
       ];
     };
 
-    lib.net = (import ./lib/net.nix).lib.net;
+    lib = {
+      inherit ((import ./lib/net.nix {inherit (nixpkgs) lib;}).lib) net;
+      math = import ./lib/math.nix;
+    };
   };
 }
