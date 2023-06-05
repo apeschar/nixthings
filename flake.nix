@@ -19,5 +19,7 @@
         ./modules/restic.nix
       ];
     };
+
+    lib.net = (import ./lib/net.nix).lib.net;
   };
 }
