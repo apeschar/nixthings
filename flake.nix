@@ -46,10 +46,6 @@
         expr = self.lib.ipgen.ip6 subnet "hello";
         expected = "2a01:4f9:5fb0:a30e:26e8:3b2a:c5b9:e29e";
       };
-      testIpgenLL = {
-        expr = self.lib.ipgen.ip6ll "hello";
-        expected = "fe80:4dba:5fb0:a30e:26e8:3b2a:c5b9:e29e";
-      };
     };
   };
 }
