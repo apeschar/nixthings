@@ -41,6 +41,11 @@ with lib; {
         type = types.listOf types.str;
         default = [];
       };
+
+      requireCacheMount = mkOption {
+        type = types.bool;
+        default = true;
+      };
     };
   };
 
@@ -88,6 +93,9 @@ with lib; {
         '';
       in {
         path = with pkgs; [zfs mount util-linux cfg.package];
+        unitConfig = {
+          RequiresMountsFor = lib.optional cfg.requireCacheMount ["/var/cache/restic"];
+        };
         serviceConfig = {
           Type = "oneshot";
           PrivateMounts = true;
@@ -106,6 +114,9 @@ with lib; {
       };
 
       systemd.services.restic-init = {
+        unitConfig = {
+          RequiresMountsFor = lib.optional cfg.requireCacheMount ["/var/cache/restic"];
+        };
         serviceConfig = {
           Type = "oneshot";
           EnvironmentFile = cfg.secrets;
