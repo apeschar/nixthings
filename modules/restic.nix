@@ -19,7 +19,7 @@ with lib; {
 
       pool = mkOption {
         type = types.str;
-        default = "rpool";
+        default = "rpool/state";
         description = ''
           ZFS pool to back up
         '';
@@ -42,17 +42,29 @@ with lib; {
         default = [];
       };
 
-      requireCacheMount = mkOption {
-        type = types.bool;
-        default = true;
+      cacheDataset = mkOption {
+        type = types.str;
+        default = "rpool/local/restic";
+      };
+
+      cacheDirectory = mkOption {
+        type = types.path;
+        default = "/var/cache/restic";
       };
     };
   };
 
   config = let
     cfg = config.kibo.restic;
+    excludeFilesystems = [cfg.cacheDataset] ++ cfg.excludeFilesystems;
   in
     mkIf cfg.enable {
+      fileSystems.${cfg.cacheDirectory} = {
+        fsType = "zfs";
+        device = cfg.cacheDataset;
+        options = ["noauto" "x-systemd.requires=restic-create-cache.service"];
+      };
+
       systemd.services.restic = let
         inherit (cfg) pool;
         snapshotName = "restic";
@@ -60,53 +72,56 @@ with lib; {
           set -euo pipefail
 
           cleanup() {
-            zfs destroy -f -r ${pkgs.lib.escapeShellArg "${pool}@${snapshotName}"}
+            zfs destroy -f -r ${lib.escapeShellArg "${pool}@${snapshotName}"}
           }
 
           snapshot() {
-            zfs snapshot -r ${pkgs.lib.escapeShellArg "${pool}@${snapshotName}"}
+            zfs snapshot -r ${lib.escapeShellArg "${pool}@${snapshotName}"}
           }
 
           if ! snapshot; then
+            echo "Snapshot creation fails; retrying after cleanup" >&2
             cleanup
             snapshot
           fi
 
-          zfs list -H -o name -r ${pkgs.lib.escapeShellArg pool} | while read dataset; do
-            ${pkgs.lib.concatMapStringsSep "\n" (fs: ''
-              if [[ $dataset = ${pkgs.lib.escapeShellArg fs} ]]; then continue; fi
+          zfs list -H -o name -r ${lib.escapeShellArg pool} | while read dataset; do
+            ${lib.concatMapStringsSep "\n" (fs: ''
+              if [[ $dataset = ${lib.escapeShellArg fs} ]]; then
+                echo "Skipping filesystem: $dataset" >&2
+                continue
+              fi
             '')
-            cfg.excludeFilesystems}
+            excludeFilesystems}
             echo "Mounting filesystem: $dataset" >&2
             ramfs="/tmp/$(uuidgen)"
             mkdir "$ramfs"
             mount -t ramfs ramfs "$ramfs"
             mkdir "$ramfs/lower" "$ramfs/upper" "$ramfs/work"
-            mount -t zfs "$dataset@"${pkgs.lib.escapeShellArg snapshotName} "$ramfs/lower"
+            mount -t zfs "$dataset@"${lib.escapeShellArg snapshotName} "$ramfs/lower"
             mkdir -p "/tmp/$dataset"
             mount -t overlay overlay -o "lowerdir=$ramfs/lower,upperdir=$ramfs/upper,workdir=$ramfs/work" "/tmp/$dataset"
           done
 
           cd /tmp
 
-          restic backup --cache-dir /var/cache/restic --verbose ${pkgs.lib.escapeShellArg pool}
+          restic backup --cache-dir ${lib.escapeShellArg cfg.cacheDirectory} --verbose ${lib.escapeShellArg pool}
         '';
       in {
         path = with pkgs; [zfs mount util-linux cfg.package];
         unitConfig = {
-          RequiresMountsFor = lib.optional cfg.requireCacheMount ["/var/cache/restic"];
+          RequiresMountsFor = [cfg.cacheDirectory];
         };
         serviceConfig = {
           Type = "oneshot";
           PrivateMounts = true;
           PrivateTmp = true;
-          CacheDirectory = "restic";
           Environment = [
             "HC_API_URL=https://ping.kibo.li"
           ];
           EnvironmentFile = cfg.secrets;
-          ExecStart = pkgs.lib.escapeShellArgs ["${pkgs.runitor}/bin/runitor" script];
-          ExecStopPost = pkgs.lib.escapeShellArgs ["${pkgs.zfs}/bin/zfs" "destroy" "-f" "-r" "${pool}@${snapshotName}"];
+          ExecStart = lib.escapeShellArgs ["${pkgs.runitor}/bin/runitor" script];
+          ExecStopPost = lib.escapeShellArgs ["${pkgs.zfs}/bin/zfs" "destroy" "-f" "-r" "${pool}@${snapshotName}"];
         };
         startAt = "hourly";
         stopIfChanged = false;
@@ -115,12 +130,19 @@ with lib; {
 
       systemd.services.restic-init = {
         unitConfig = {
-          RequiresMountsFor = lib.optional cfg.requireCacheMount ["/var/cache/restic"];
+          RequiresMountsFor = [cfg.cacheDirectory];
         };
         serviceConfig = {
           Type = "oneshot";
           EnvironmentFile = cfg.secrets;
-          ExecStart = pkgs.lib.escapeShellArgs ["${cfg.package}/bin/restic" "init"];
+          ExecStart = lib.escapeShellArgs ["${cfg.package}/bin/restic" "init"];
+        };
+      };
+
+      systemd.services.restic-create-cache = {
+        serviceConfig = {
+          Type = "oneshot";
+          ExecStart = "${pkgs.zfs}/bin/zfs create -pv -o mountpoint=legacy -o refquota=50G ${lib.escapeShellArg cfg.cacheDataset}";
         };
       };
 
