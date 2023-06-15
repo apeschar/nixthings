@@ -80,7 +80,7 @@ with lib; {
           }
 
           if ! snapshot; then
-            echo "Snapshot creation fails; retrying after cleanup" >&2
+            echo "Snapshot creation failed; retrying after cleanup..." >&2
             cleanup
             snapshot
           fi
