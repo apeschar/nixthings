@@ -17,6 +17,7 @@
         {nixpkgs.overlays = [checkmk.overlays.default];}
         ./modules/checkmk.nix
         ./modules/restic.nix
+        ./modules/tools.nix
       ];
     };
 
