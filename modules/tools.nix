@@ -3,5 +3,6 @@
     dnsutils
     htop
     lsof
+    socat
   ];
 }
