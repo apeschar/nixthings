@@ -18,6 +18,7 @@
         ./modules/checkmk.nix
         ./modules/restic.nix
         ./modules/tools.nix
+        ./modules/mosh.nix
       ];
     };
 
