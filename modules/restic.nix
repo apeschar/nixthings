@@ -146,6 +146,18 @@ with lib; {
         };
       };
 
+      systemd.services.restic-prune-cache = {
+        unitConfig = {
+          RequiresMountsFor = [cfg.cacheDirectory];
+        };
+        serviceConfig = {
+          Type = "oneshot";
+          ExecStart = lib.escapeShellArgs ["${pkgs.findutils}/bin/find" cfg.cacheDirectory "-xdev" "-atime" "+14" "-type" "f" "-not" "(" "-name" "*.TAG" ")" "-delete"];
+          ProtectSystem = true;
+          ReadWritePaths = [cfg.cacheDirectory];
+        };
+      };
+
       environment.systemPackages = [
         cfg.package
         (pkgs.writeShellScriptBin "restic-authenticated" ''
