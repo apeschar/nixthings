@@ -16,9 +16,10 @@
       imports = [
         {nixpkgs.overlays = [checkmk.overlays.default];}
         ./modules/checkmk.nix
-        ./modules/restic.nix
-        ./modules/tools.nix
         ./modules/mosh.nix
+        ./modules/restic.nix
+        ./modules/ssh.nix
+        ./modules/tools.nix
       ];
     };
 
