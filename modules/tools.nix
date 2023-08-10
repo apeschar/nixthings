@@ -6,4 +6,16 @@
     lsof
     socat
   ];
+
+  programs.neovim = {
+    enable = true;
+    defaultEditor = true;
+    vimAlias = true;
+    configure = {
+      customRC = ''
+        colorscheme desert
+        set showcmd
+      '';
+    };
+  };
 }
