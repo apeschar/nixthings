@@ -1,7 +1,6 @@
 {pkgs, ...}: {
   environment.systemPackages = with pkgs; [
     dnsutils
-    git
     htop
     lsof
     ripgrep
@@ -18,5 +17,10 @@
         set showcmd
       '';
     };
+  };
+
+  programs.git = {
+    enable = true;
+    config.commit.verbose = true;
   };
 }
