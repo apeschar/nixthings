@@ -4,6 +4,7 @@
     git
     htop
     lsof
+    ripgrep
     socat
   ];
 
