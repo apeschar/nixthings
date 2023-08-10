@@ -15,6 +15,7 @@
       customRC = ''
         colorscheme desert
         set showcmd
+        set mouse=
       '';
     };
   };
