@@ -5,6 +5,7 @@
     lsof
     ripgrep
     socat
+    tig
   ];
 
   programs.neovim = {
