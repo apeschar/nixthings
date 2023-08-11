@@ -3,6 +3,7 @@
     dnsutils
     htop
     lsof
+    ncdu
     ripgrep
     socat
     tig
