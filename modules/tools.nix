@@ -5,8 +5,10 @@
     lsof
     ncdu
     ripgrep
+    screen
     socat
     tig
+    tmux
   ];
 
   programs.neovim = {
