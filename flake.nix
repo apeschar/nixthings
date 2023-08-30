@@ -15,6 +15,7 @@
     nixosModule = {
       imports = [
         {nixpkgs.overlays = [checkmk.overlays.default];}
+        ./modules/defaults.nix
         ./modules/checkmk.nix
         ./modules/mosh.nix
         ./modules/restic.nix
