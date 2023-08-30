@@ -1,9 +1,11 @@
 {pkgs, ...}: {
   environment.systemPackages = with pkgs; [
     dnsutils
+    efibootmgr
     htop
     lsof
     ncdu
+    psmisc
     ripgrep
     screen
     socat
