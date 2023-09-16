@@ -105,8 +105,6 @@ with lib; {
 
           cd /tmp
 
-          find ${lib.escapeShellArg cfg.cacheDirectory} -type f -not -name CACHEDIR.TAG -mtime +7 -delete
-
           restic backup --cache-dir ${lib.escapeShellArg cfg.cacheDirectory} --verbose ${lib.escapeShellArg pool}
         '';
       in {
@@ -154,10 +152,11 @@ with lib; {
         };
         serviceConfig = {
           Type = "oneshot";
-          ExecStart = lib.escapeShellArgs ["${pkgs.findutils}/bin/find" cfg.cacheDirectory "-xdev" "-atime" "+14" "-type" "f" "-not" "(" "-name" "*.TAG" ")" "-delete"];
+          ExecStart = lib.escapeShellArgs ["${pkgs.findutils}/bin/find" cfg.cacheDirectory "-xdev" "-atime" "+7" "-type" "f" "-not" "-name" "*.TAG" "-delete"];
           ProtectSystem = true;
           ReadWritePaths = [cfg.cacheDirectory];
         };
+        startsAt = "daily";
       };
 
       environment.systemPackages = [
