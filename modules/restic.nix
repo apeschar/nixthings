@@ -105,6 +105,8 @@ with lib; {
 
           cd /tmp
 
+          find ${lib.escapeShellArg cfg.cacheDirectory} -type f -not -name CACHEDIR.TAG -mtime +7 -delete
+
           restic backup --cache-dir ${lib.escapeShellArg cfg.cacheDirectory} --verbose ${lib.escapeShellArg pool}
         '';
       in {
