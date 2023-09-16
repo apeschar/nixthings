@@ -156,7 +156,7 @@ with lib; {
           ProtectSystem = true;
           ReadWritePaths = [cfg.cacheDirectory];
         };
-        startsAt = "daily";
+        startAt = "daily";
       };
 
       environment.systemPackages = [
