@@ -109,6 +109,9 @@ with lib; {
         '';
       in {
         path = with pkgs; [zfs mount util-linux cfg.package];
+        environment = {
+          GOGC = "20";
+        };
         unitConfig = {
           RequiresMountsFor = [cfg.cacheDirectory];
         };
