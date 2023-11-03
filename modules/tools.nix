@@ -9,6 +9,7 @@
     ripgrep
     screen
     socat
+    tcpdump
     tig
     tmux
   ];
