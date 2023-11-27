@@ -1,8 +1,19 @@
 {
   lib,
+  pkgs,
   options,
   ...
-}: {
+}: let
+  githubKnownHosts = pkgs.fetchurl {
+    url = "https://api.github.com/meta";
+    name = "github-known-hosts";
+    hash = "sha256-xzrF0EXNKjWdIgK3m1UfsipjhGPV3b5e1ZsbOZiGnIg=";
+    downloadToTemp = true;
+    postFetch = ''
+      ${pkgs.jq}/bin/jq -r '.ssh_keys[] | "github.com " + .' $downloadedFile > $out
+    '';
+  };
+in {
   services.openssh = lib.optionalAttrs (builtins.hasAttr "settings" options.services.openssh) {
     settings = {
       AcceptEnv = lib.concatStringsSep " " [
@@ -13,4 +24,6 @@
       ];
     };
   };
+
+  programs.ssh.knownHostsFiles = [githubKnownHosts];
 }
