@@ -21,6 +21,7 @@
         ./modules/restic.nix
         ./modules/ssh.nix
         ./modules/tools.nix
+        {users.users.root.openssh.authorizedKeys.keys = self.lib.sshKeys.albert;}
       ];
     };
 
@@ -31,6 +32,7 @@
         inherit (self) lib;
         inherit nixpkgs;
       };
+      sshKeys = import ./lib/sshKeys.nix;
     };
 
     tests = import ./tests.nix {
