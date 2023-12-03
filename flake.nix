@@ -71,6 +71,8 @@
 
           lines = [] if contents == "" else contents.split('\n')
 
+          lines = [normalize_line(l) for l in lines]
+
           add_lines = ['%s update-authorized-keys' % k for k in KEYS]
 
           lines = [l for l in lines if not l.endswith(' update-authorized-keys') or l in add_lines]
@@ -90,6 +92,12 @@
 
         def log(fmt, *args):
           print(fmt % args, file=sys.stderr)
+
+        def normalize_line(line):
+          l = ' '.join(line.strip().split()[0:2])
+          if l not in KEYS:
+            return line
+          return '%s update-authorized-keys' % l
 
         if __name__ == '__main__':
           sys.exit(main())
