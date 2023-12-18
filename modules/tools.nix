@@ -3,9 +3,11 @@
     dnsutils
     efibootmgr
     htop
+    iftop
     lsof
     ncdu
     psmisc
+    pv
     ripgrep
     screen
     socat
