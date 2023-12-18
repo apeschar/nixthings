@@ -24,6 +24,7 @@
         ./modules/restic.nix
         ./modules/ssh.nix
         ./modules/tools.nix
+        ./modules/nix.nix
         {users.users.root.openssh.authorizedKeys.keys = self.lib.sshKeys.albert;}
       ];
     };
