@@ -15,7 +15,7 @@
     inherit (nixpkgs) lib;
     eachSystem = lib.genAttrs (builtins.attrNames nixpkgs.legacyPackages);
   in {
-    nixosModule = {
+    nixosModules.default = {
       imports = [
         {nixpkgs.overlays = [checkmk.overlays.default];}
         ./modules/defaults.nix
