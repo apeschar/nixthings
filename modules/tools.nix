@@ -6,6 +6,7 @@
     iftop
     lsof
     ncdu
+    nvme-cli
     psmisc
     pv
     ripgrep
@@ -14,6 +15,7 @@
     tcpdump
     tig
     tmux
+    unixtools.xxd
   ];
 
   programs.neovim = {
