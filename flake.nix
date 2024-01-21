@@ -27,6 +27,7 @@
         ./modules/nix.nix
         ./modules/mdadm.nix
         ./modules/kexec.nix
+        ./modules/firewall.nix
         {users.users.root.openssh.authorizedKeys.keys = self.lib.sshKeys.albert;}
       ];
     };
