@@ -4,6 +4,7 @@
     efibootmgr
     htop
     iftop
+    libarchive
     lsof
     ncdu
     nvme-cli
