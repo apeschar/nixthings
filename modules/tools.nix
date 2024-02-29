@@ -36,4 +36,6 @@
     enable = true;
     config.commit.verbose = true;
   };
+
+  environment.etc."htoprc".source = ../htoprc;
 }
