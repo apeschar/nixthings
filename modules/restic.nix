@@ -117,7 +117,7 @@ with lib; {
               "--verbose"
               pool
             ]
-            ++ builtins.map (path: "--exclude=${path}") cfg.excludePatterns)}
+            ++ builtins.map (path: "--exclude=${lib.optionalString (lib.hasPrefix "/" path) "/tmp"}${path}") cfg.excludePatterns)}
         '';
       in {
         path = with pkgs; [zfs mount util-linux cfg.package];
