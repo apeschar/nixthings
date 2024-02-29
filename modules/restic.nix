@@ -51,6 +51,11 @@ with lib; {
         type = types.path;
         default = "/var/cache/restic";
       };
+
+      excludePatterns = mkOption {
+        type = types.listOf types.str;
+        default = [];
+      };
     };
   };
 
@@ -105,7 +110,14 @@ with lib; {
 
           cd /tmp
 
-          restic backup --cache-dir ${lib.escapeShellArg cfg.cacheDirectory} --verbose ${lib.escapeShellArg pool}
+          ${lib.escapeShellArgs ([
+              "restic"
+              "backup"
+              "--cache-dir=${cfg.cacheDirectory}"
+              "--verbose"
+              pool
+            ]
+            ++ builtins.map (path: "--exclude=${path}") cfg.excludePatterns)}
         '';
       in {
         path = with pkgs; [zfs mount util-linux cfg.package];
