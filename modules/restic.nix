@@ -137,6 +137,10 @@ with lib; {
           EnvironmentFile = cfg.secrets;
           ExecStart = lib.escapeShellArgs ["${pkgs.runitor}/bin/runitor" script];
           ExecStopPost = lib.escapeShellArgs ["${pkgs.zfs}/bin/zfs" "destroy" "-f" "-r" "${pool}@${snapshotName}"];
+          MemoryHigh = "8G";
+          MemoryMax = "12G";
+          MemorySwapMax = 0;
+          CPUWeight = 50;
         };
         startAt = "hourly";
         stopIfChanged = false;
