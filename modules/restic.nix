@@ -86,7 +86,7 @@ with lib; {
           set -euo pipefail
 
           cleanup() {
-            zfs destroy -f -r ${lib.escapeShellArg "${pool}@${snapshotName}"}
+            zfs destroy -f -R ${lib.escapeShellArg "${pool}@${snapshotName}"}
           }
 
           snapshot() {
@@ -101,6 +101,9 @@ with lib; {
 
           zfs list -H -o name -r ${lib.escapeShellArg pool} | while read dataset; do
             ${lib.concatMapStringsSep "\n" (fs: ''
+              if [[ $dataset = */restic-clone--* ]]; then
+                continue
+              fi
               if [[ $dataset = ${lib.escapeShellArg fs} ]]; then
                 echo "Skipping filesystem: $dataset" >&2
                 continue
@@ -108,13 +111,12 @@ with lib; {
             '')
             excludeFilesystems}
             echo "Mounting filesystem: $dataset" >&2
-            ramfs="/tmp/$(uuidgen)"
-            mkdir "$ramfs"
-            mount -t ramfs ramfs "$ramfs"
-            mkdir "$ramfs/lower" "$ramfs/upper" "$ramfs/work"
-            mount -t zfs "$dataset@"${lib.escapeShellArg snapshotName} "$ramfs/lower"
+            clone_name=''${dataset//-/--}
+            clone_name=''${dataset//\//-}
+            clone=${lib.escapeShellArg (builtins.elemAt (builtins.split "/" pool) 0)}"/restic-clone--$clone_name"
+            zfs clone -o mountpoint=legacy "$dataset@"${lib.escapeShellArg snapshotName} "$clone"
             mkdir -p "/tmp/$dataset"
-            mount -t overlay overlay -o "lowerdir=$ramfs/lower,upperdir=$ramfs/upper,workdir=$ramfs/work" "/tmp/$dataset"
+            mount -t zfs "$clone" "/tmp/$dataset"
           done
 
           cd /tmp
@@ -145,7 +147,7 @@ with lib; {
           ];
           EnvironmentFile = cfg.secrets;
           ExecStart = lib.escapeShellArgs ["${pkgs.runitor}/bin/runitor" script];
-          ExecStopPost = lib.escapeShellArgs ["${pkgs.zfs}/bin/zfs" "destroy" "-f" "-r" "${pool}@${snapshotName}"];
+          ExecStopPost = lib.escapeShellArgs ["${pkgs.zfs}/bin/zfs" "destroy" "-f" "-R" "${pool}@${snapshotName}"];
           MemoryHigh = "8G";
           MemoryMax = "12G";
           MemorySwapMax = 0;
