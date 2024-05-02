@@ -14,7 +14,16 @@ with lib; {
 
       package = mkOption {
         type = types.package;
-        default = pkgs.restic;
+        default = pkgs.restic.overrideAttrs (old: {
+          patches =
+            old.patches
+            ++ [
+              (builtins.fetchurl {
+                url = "https://github.com/apeschar/restic/commit/c049490ce1d83c6c7c9e579a3ad8668e408d5a30.patch";
+                sha256 = "0klb6vzw95awar65hprw4i298ka521sgr0vsa28lddzjq04kh2c8";
+              })
+            ];
+        });
       };
 
       pool = mkOption {
