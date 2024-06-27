@@ -15,21 +15,24 @@
     inherit (nixpkgs) lib;
     eachSystem = lib.genAttrs (builtins.attrNames nixpkgs.legacyPackages);
   in {
-    nixosModules.default = {
-      imports = [
-        {nixpkgs.overlays = [checkmk.overlays.default];}
-        ./modules/defaults.nix
-        ./modules/checkmk.nix
-        ./modules/mosh.nix
-        ./modules/restic.nix
-        ./modules/ssh.nix
-        ./modules/tools.nix
-        ./modules/nix.nix
-        ./modules/mdadm.nix
-        ./modules/kexec.nix
-        ./modules/firewall.nix
-        {users.users.root.openssh.authorizedKeys.keys = self.lib.sshKeys.albert;}
-      ];
+    nixosModules = {
+      nixthings = {
+        imports = [
+          {nixpkgs.overlays = [checkmk.overlays.default];}
+          ./modules/defaults.nix
+          ./modules/checkmk.nix
+          ./modules/mosh.nix
+          ./modules/restic.nix
+          ./modules/ssh.nix
+          ./modules/tools.nix
+          ./modules/nix.nix
+          ./modules/mdadm.nix
+          ./modules/kexec.nix
+          ./modules/firewall.nix
+          {users.users.root.openssh.authorizedKeys.keys = self.lib.sshKeys.albert;}
+        ];
+      };
+      default = self.nixosModules.nixthings;
     };
 
     lib = {
