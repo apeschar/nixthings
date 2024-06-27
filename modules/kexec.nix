@@ -16,8 +16,9 @@
       --command-line ${lib.escapeShellArg commandLine}
     kexec -e
   '';
+  cond = lib.mkIf (!config.boot.isContainer);
 in {
-  system.systemBuilderCommands = ''
+  system.systemBuilderCommands = cond ''
     if [[ -f $out/kexec ]]; then
       echo "nixthings: kexec script exists; rename it?"
       exit 1
@@ -26,7 +27,7 @@ in {
     chmod +x $out/kexec
   '';
 
-  boot.loader.grub.extraInstallCommands = ''
+  boot.loader.grub.extraInstallCommands = cond ''
     echo "To kexec into the new system configuration, run:" >&2
     echo "sudo $1/kexec" >&2
   '';
