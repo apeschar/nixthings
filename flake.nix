@@ -29,6 +29,7 @@
           ./modules/mdadm.nix
           ./modules/kexec.nix
           ./modules/firewall.nix
+          ./modules/postgresql.nix
           ./modules/acme.nix
           {users.users.root.openssh.authorizedKeys.keys = self.lib.sshKeys.albert;}
         ];
