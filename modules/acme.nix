@@ -1,6 +1,6 @@
-_: {
+{lib, ...}: {
   security.acme = {
-    acceptTerms = true;
-    defaults.email = "albert@peschar.net";
+    acceptTerms = lib.mkDefault true;
+    defaults.email = lib.mkDefault "albert@peschar.net";
   };
 }
