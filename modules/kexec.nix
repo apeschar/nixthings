@@ -10,11 +10,11 @@
   script = ''
     #!${pkgs.runtimeShell}
     set -xeuo pipefail
-    kexec \
+    ${pkgs.kexec-tools}/bin/kexec \
       --load ${lib.escapeShellArg kernelPath} \
       --initrd ${lib.escapeShellArg initrdPath} \
       --command-line ${lib.escapeShellArg commandLine}
-    kexec -e
+    ${pkgs.kexec-tools}/bin/kexec -e
   '';
   cond = lib.mkIf (!config.boot.isContainer);
 in {
