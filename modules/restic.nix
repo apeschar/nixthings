@@ -142,9 +142,6 @@ with lib; {
           Type = "oneshot";
           PrivateMounts = true;
           PrivateTmp = true;
-          Environment = [
-            "HC_API_URL=https://ping.kibo.li"
-          ];
           EnvironmentFile = cfg.secrets;
           ExecStart = lib.escapeShellArgs ["${pkgs.runitor}/bin/runitor" script];
           ExecStopPost = lib.escapeShellArgs ["${pkgs.zfs}/bin/zfs" "destroy" "-f" "-R" "${pool}@${snapshotName}"];
