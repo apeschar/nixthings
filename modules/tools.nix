@@ -12,6 +12,7 @@
     pv
     ripgrep
     screen
+    smartmontools
     socat
     tcpdump
     tig
