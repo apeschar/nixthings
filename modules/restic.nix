@@ -17,12 +17,10 @@ with lib; {
         default = pkgs.restic.overrideAttrs (old: {
           patches =
             old.patches
-            ++ [
-              (builtins.fetchurl {
-                url = "https://github.com/apeschar/restic/commit/c049490ce1d83c6c7c9e579a3ad8668e408d5a30.patch";
-                sha256 = "0klb6vzw95awar65hprw4i298ka521sgr0vsa28lddzjq04kh2c8";
-              })
-            ];
+            ++ lib.optional (builtins.compareVersions old.version "0.17" < 0) (builtins.fetchurl {
+              url = "https://github.com/apeschar/restic/commit/c049490ce1d83c6c7c9e579a3ad8668e408d5a30.patch";
+              sha256 = "0klb6vzw95awar65hprw4i298ka521sgr0vsa28lddzjq04kh2c8";
+            });
         });
       };
 
@@ -134,6 +132,9 @@ with lib; {
         path = with pkgs; [zfs mount util-linux cfg.package];
         environment = {
           GOGC = "20";
+          # This can be removed at some point in the future
+          # when this feature flag is removed from restic.
+          RESTIC_FEATURES = "device-id-for-hardlinks=true";
         };
         unitConfig = {
           RequiresMountsFor = [cfg.cacheDirectory];
