@@ -63,6 +63,11 @@ with lib; {
         type = types.listOf types.str;
         default = [];
       };
+
+      startAt = mkOption {
+        type = types.str;
+        default = "hourly";
+      };
     };
   };
 
@@ -151,7 +156,7 @@ with lib; {
           MemorySwapMax = 0;
           CPUWeight = 50;
         };
-        startAt = "hourly";
+        startAt = cfg.startAt;
         stopIfChanged = false;
         restartIfChanged = false;
       };
