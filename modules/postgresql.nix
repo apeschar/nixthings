@@ -88,11 +88,5 @@ in {
       ssl_cert_file = "/var/lib/postgresql/ssl/fullchain.pem";
       ssl_key_file = "/var/lib/postgresql/ssl/key.pem";
     };
-
-    environment.etc."postgresql/psqlrc".text = ''
-      \set QUIET
-      \pset null ¤
-      \unset QUIET
-    '';
   };
 }
