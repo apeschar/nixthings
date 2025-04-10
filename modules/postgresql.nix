@@ -90,7 +90,9 @@ in {
     };
 
     environment.etc."postgresql/psqlrc".text = ''
+      \set QUIET
       \pset null ¤
+      \unset QUIET
     '';
   };
 }
