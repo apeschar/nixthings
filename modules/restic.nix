@@ -88,19 +88,9 @@ with lib; {
         script = pkgs.writeShellScript "restic" ''
           set -euo pipefail
 
-          cleanup() {
-            zfs destroy -f -R ${lib.escapeShellArg "${pool}@${snapshotName}"}
-          }
+          snapshotName=${lib.escapeShellArg snapshotName}-$(xxd -l 8 -p /dev/urandom)
 
-          snapshot() {
-            zfs snapshot -r ${lib.escapeShellArg "${pool}@${snapshotName}"}
-          }
-
-          if ! snapshot; then
-            echo "Snapshot creation failed; retrying after cleanup..." >&2
-            cleanup
-            snapshot
-          fi
+          zfs snapshot -r ${lib.escapeShellArg pool}"@$snapshotName"
 
           zfs list -H -o name -r ${lib.escapeShellArg pool} | while read dataset; do
             ${lib.concatMapStringsSep "\n" (fs: ''
@@ -114,10 +104,10 @@ with lib; {
             '')
             excludeFilesystems}
             echo "Mounting filesystem: $dataset" >&2
-            clone_name=''${dataset//-/--}
-            clone_name=''${dataset//\//-}
-            clone=${lib.escapeShellArg (builtins.elemAt (builtins.split "/" pool) 0)}"/restic-clone--$clone_name"
-            zfs clone -o mountpoint=legacy "$dataset@"${lib.escapeShellArg snapshotName} "$clone"
+            cloneName=''${dataset//-/--}
+            cloneName=''${dataset//\//-}
+            clone=${lib.escapeShellArg (builtins.elemAt (builtins.split "/" pool) 0)}"/restic-clone--$cloneName--$snapshotName"
+            zfs clone -o mountpoint=legacy "$dataset@$snapshotName" "$clone"
             mkdir -p "/tmp/$dataset"
             mount -t zfs "$clone" "/tmp/$dataset"
           done
@@ -134,7 +124,7 @@ with lib; {
             ++ builtins.map (path: "--exclude=${lib.optionalString (lib.hasPrefix "/" path) "/tmp"}${path}") cfg.excludePatterns)}
         '';
       in {
-        path = with pkgs; [zfs mount util-linux cfg.package];
+        path = with pkgs; [zfs mount util-linux cfg.package unixtools.xxd];
         environment = {
           GOGC = "20";
           # This can be removed at some point in the future
@@ -150,13 +140,17 @@ with lib; {
           PrivateTmp = true;
           EnvironmentFile = cfg.secrets;
           ExecStart = lib.escapeShellArgs ["${pkgs.runitor}/bin/runitor" script];
-          ExecStopPost = lib.escapeShellArgs ["${pkgs.zfs}/bin/zfs" "destroy" "-f" "-R" "${pool}@${snapshotName}"];
+          ExecStopPost = pkgs.writeShellScript "restic-stop-post" ''
+            zfs list -t snapshot -Ho name ${lib.escapeShellArg pool} |
+              grep ${lib.escapeShellArg "@${snapshotName}-"} |
+              xargs -r -d'\n' -n 1 zfs destroy -R -f
+          '';
           MemoryHigh = "8G";
           MemoryMax = "12G";
           MemorySwapMax = 0;
           CPUWeight = 50;
         };
-        startAt = cfg.startAt;
+        inherit (cfg) startAt;
         stopIfChanged = false;
         restartIfChanged = false;
       };
