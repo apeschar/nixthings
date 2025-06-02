@@ -85,8 +85,29 @@ with lib; {
       systemd.services.restic = let
         inherit (cfg) pool;
         snapshotName = "restic";
+        destroySnapshotsScript = pkgs.writeShellScript "restic-destroy-snapshots" ''
+          tries=30
+
+          sleep 1
+
+          while ! zfs list -t snapshot -Ho name ${lib.escapeShellArg pool} |
+            grep ${lib.escapeShellArg "@${snapshotName}-"} |
+            xargs -r -d'\n' -n 1 zfs destroy -R -f
+          do
+            sleep 10
+            ((tries--))
+            if [[ $tries -le 0 ]]; then
+              echo "Could not destroy snapshots" >&2
+              exit 1
+            fi
+          done
+
+          echo "Successfully destroyed snapshots" >&2
+        '';
         script = pkgs.writeShellScript "restic" ''
           set -euo pipefail
+
+          ${destroySnapshotsScript}
 
           snapshotName=${lib.escapeShellArg snapshotName}-$(xxd -l 8 -p /dev/urandom)
 
@@ -140,11 +161,7 @@ with lib; {
           PrivateTmp = true;
           EnvironmentFile = cfg.secrets;
           ExecStart = lib.escapeShellArgs ["${pkgs.runitor}/bin/runitor" script];
-          ExecStopPost = pkgs.writeShellScript "restic-stop-post" ''
-            zfs list -t snapshot -Ho name ${lib.escapeShellArg pool} |
-              grep ${lib.escapeShellArg "@${snapshotName}-"} |
-              xargs -r -d'\n' -n 1 zfs destroy -R -f
-          '';
+          ExecStopPost = destroySnapshotsScript;
           MemoryHigh = "8G";
           MemoryMax = "12G";
           MemorySwapMax = 0;
