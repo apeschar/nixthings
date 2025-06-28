@@ -17,6 +17,10 @@
     ${pkgs.kexec-tools}/bin/kexec -e
   '';
   cond = lib.mkIf (!config.boot.isContainer);
+  hintScript = ''
+    echo "To kexec into the new system configuration, run:" >&2
+    echo "sudo $1/kexec" >&2
+  '';
 in {
   system.systemBuilderCommands = cond ''
     if [[ -f $out/kexec ]]; then
@@ -27,8 +31,12 @@ in {
     chmod +x $out/kexec
   '';
 
-  boot.loader.grub.extraInstallCommands = cond ''
-    echo "To kexec into the new system configuration, run:" >&2
-    echo "sudo $1/kexec" >&2
-  '';
+  boot.loader.grub.extraInstallCommands = cond hintScript;
+
+  system.activationScripts = cond {
+    kexec-hint = {
+      text = hintScript;
+      supportsDryActivation = true;
+    };
+  };
 }
