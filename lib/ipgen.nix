@@ -1,14 +1,5 @@
-{
-  lib,
-  nixpkgs,
-}: let
+{lib}: let
   sha256 = builtins.hashString "sha256";
-
-  hextet = hex: i: builtins.substring (4 * i) 4 hex;
-
-  addressOfHex = hex: nixpkgs.lib.concatMapStringsSep ":" (hextet hex) (nixpkgs.lib.range 0 7);
-
-  addressOfValue = value: addressOfHex (sha256 value);
 
   hashUntil = p: f: v: let
     go = suffix: let
@@ -24,8 +15,6 @@
   move = dest: addr: lib.net.ip.add (lib.net.cidr.host 0 dest) (lib.net.ip.subtract (lib.net.cidr.host 0 (lib.net.cidr.make (lib.net.cidr.length dest) addr)) addr);
 
   ipgen = {
-    ip6 = subnet: value: move subnet (addressOfValue value);
-
     ip4ll =
       hashUntil
       (addr: !(builtins.any (lib.net.cidr.contains addr) ["169.254.0.0/24" "169.254.255.0/24"]))

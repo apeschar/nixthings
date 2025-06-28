@@ -40,10 +40,7 @@
     lib = {
       inherit ((import ./lib/net.nix {inherit (nixpkgs) lib;}).lib) net;
       math = import ./lib/math.nix;
-      ipgen = import ./lib/ipgen.nix {
-        inherit (self) lib;
-        inherit nixpkgs;
-      };
+      ipgen = import ./lib/ipgen.nix {inherit (self) lib;};
       sshKeys = import ./lib/sshKeys.nix;
     };
 
