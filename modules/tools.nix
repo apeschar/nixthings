@@ -5,6 +5,7 @@
     htop
     iftop
     libarchive
+    lm_sensors
     lsof
     ncdu
     nvme-cli
