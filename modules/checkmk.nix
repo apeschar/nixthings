@@ -2,12 +2,12 @@
   lib,
   config,
   pkgs,
-  utils,
   ...
 }: let
   cfg = config.kibo.checkmk;
   check_mk_agent = pkgs.check_mk_agent.override (_: {
     enablePluginSmart = true;
+    localChecks = lib.mapAttrsToList (name: options: {inherit name;} // options) cfg.localChecks;
   });
   userOpts = _: {
     options = {
@@ -21,6 +21,17 @@ in {
   options = {
     kibo.checkmk = {
       enable = lib.mkEnableOption "Check_MK agent";
+      localChecks = lib.mkOption {
+        type = lib.types.attrsOf (lib.types.submodule {
+          options = {
+            script = lib.mkOption {type = lib.types.str;};
+            deps = lib.mkOption {
+              type = lib.types.listOf lib.types.package;
+              default = [];
+            };
+          };
+        });
+      };
     };
 
     users.users = lib.mkOption {
