@@ -6,4 +6,6 @@ _: {
   time.timeZone = "UTC";
 
   users.mutableUsers = false;
+
+  boot.loader.grub.configurationLimit = 10;
 }
