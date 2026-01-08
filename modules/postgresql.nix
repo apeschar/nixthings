@@ -72,7 +72,7 @@ in {
 
             cd "$NEWDATA"
 
-            "$NEWBIN/initdb" --no-sync -D "$NEWDATA"
+            "$NEWBIN/initdb" --no-sync --no-data-checksums -D "$NEWDATA"
 
             "$NEWBIN/pg_upgrade" \
               --old-datadir "$OLDDATA" --new-datadir "$NEWDATA" \
