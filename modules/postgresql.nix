@@ -77,7 +77,7 @@ in {
             "$NEWBIN/pg_upgrade" \
               --old-datadir "$OLDDATA" --new-datadir "$NEWDATA" \
               --old-bindir "$OLDBIN" --new-bindir "$NEWBIN" \
-              --jobs "$(nproc)" --no-sync -o '-F' -O '-F'
+              --clone --jobs "$(nproc)" --no-sync -o '-F' -O '-F'
           '';
         };
       };
