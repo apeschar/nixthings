@@ -78,6 +78,8 @@ in {
               --old-datadir "$OLDDATA" --new-datadir "$NEWDATA" \
               --old-bindir "$OLDBIN" --new-bindir "$NEWBIN" \
               --clone --jobs "$(nproc)" --no-sync -o '-F' -O '-F'
+
+            chmod = "$OLDDATA"
           '';
         };
       };
