@@ -40,4 +40,15 @@
   };
 
   environment.etc."htoprc".source = ../htoprc;
+
+  security = let
+    extraConfig = ''
+
+      # nixthings: keep $EDITOR for root and %wheel
+      Defaults:root,%wheel env_keep+=EDITOR
+    '';
+  in {
+    sudo = {inherit extraConfig;};
+    sudo-rs = {inherit extraConfig;};
+  };
 }
