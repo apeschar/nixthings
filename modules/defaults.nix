@@ -1,4 +1,11 @@
-{pkgs, ...}: {
+{pkgs, ...}: let
+  disabledKernelModules = [
+    "algif_aead"
+    "esp4"
+    "esp6"
+    "rxrpc"
+  ];
+in {
   systemd.enableEmergencyMode = false;
 
   nix.settings.extra-experimental-features = ["nix-command" "flakes"];
@@ -8,7 +15,8 @@
   users.mutableUsers = false;
 
   boot.loader.grub.configurationLimit = 10;
-  boot.extraModprobeConfig = ''
-    install algif_aead ${pkgs.coreutils}/bin/false
-  '';
+  boot.extraModprobeConfig =
+    builtins.concatMapStrings
+    (module: "install ${module} ${pkgs.coreutils}/bin/false\n")
+    disabledKernelModules;
 }
