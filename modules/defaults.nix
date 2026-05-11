@@ -1,4 +1,8 @@
-{pkgs, ...}: let
+{
+  lib,
+  pkgs,
+  ...
+}: let
   disabledKernelModules = [
     "algif_aead"
     "esp4"
@@ -16,7 +20,7 @@ in {
 
   boot.loader.grub.configurationLimit = 10;
   boot.extraModprobeConfig =
-    builtins.concatMapStrings
+    lib.concatMapStrings
     (module: "install ${module} ${pkgs.coreutils}/bin/false\n")
     disabledKernelModules;
 }
