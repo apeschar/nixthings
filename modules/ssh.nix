@@ -11,7 +11,7 @@
       settings = {
         PasswordAuthentication = false;
         KbdInteractiveAuthentication = false;
-        AcceptEnv = lib.concatStringsSep " " [
+        AcceptEnv = [
           "GIT_AUTHOR_NAME"
           "GIT_AUTHOR_EMAIL"
           "GIT_COMMITTER_NAME"
