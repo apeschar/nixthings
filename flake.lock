@@ -2,7 +2,9 @@
   "nodes": {
     "checkmk": {
       "inputs": {
-        "checkmk": "checkmk_2",
+        "checkmk": [
+          "checkmk-source"
+        ],
         "nixpkgs": [
           "nixpkgs"
         ]
@@ -21,19 +23,19 @@
         "type": "github"
       }
     },
-    "checkmk_2": {
+    "checkmk-source": {
       "flake": false,
       "locked": {
-        "lastModified": 1717746095,
-        "narHash": "sha256-PuoeCtXQQfJnnJCi/XWez6C8fjqJdL9ejBS0RjJszhA=",
-        "owner": "tribe29",
+        "lastModified": 1790795696,
+        "narHash": "sha256-6m4R6NrmY8EtRDvh3Oyi5xucDbD59FMSC8d2tNGUa4c=",
+        "owner": "Checkmk",
         "repo": "checkmk",
-        "rev": "845d37e00cadea27923676854c9ad85453b75016",
+        "rev": "9a826f77b0738c5aa516cfd5b47c1155cc79a96d",
         "type": "github"
       },
       "original": {
-        "owner": "tribe29",
-        "ref": "2.2.0",
+        "owner": "Checkmk",
+        "ref": "v2.5.0p15",
         "repo": "checkmk",
         "type": "github"
       }
@@ -56,6 +58,7 @@
     "root": {
       "inputs": {
         "checkmk": "checkmk",
+        "checkmk-source": "checkmk-source",
         "nixpkgs": "nixpkgs"
       }
     }

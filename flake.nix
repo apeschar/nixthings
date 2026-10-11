@@ -4,6 +4,11 @@
     checkmk = {
       url = "github:BenediktSeidl/nixos-check_mk_agent-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.checkmk.follows = "checkmk-source";
+    };
+    checkmk-source = {
+      url = "github:Checkmk/checkmk/v2.5.0p15";
+      flake = false;
     };
   };
 
@@ -11,6 +16,7 @@
     self,
     nixpkgs,
     checkmk,
+    ...
   }: let
     inherit (nixpkgs) lib;
     eachSystem = lib.genAttrs (builtins.attrNames nixpkgs.legacyPackages);
@@ -18,7 +24,7 @@
     nixosModules = {
       nixthings = {
         imports = [
-          {nixpkgs.overlays = [checkmk.overlays.default];}
+          {nixpkgs.overlays = [self.overlays.default];}
           ./modules/defaults.nix
           ./modules/checkmk.nix
           ./modules/mosh.nix
@@ -37,6 +43,36 @@
       default = self.nixosModules.nixthings;
     };
 
+    overlays.default = lib.composeExtensions checkmk.overlays.default (_: prev: {
+      check_mk_agent = prev.check_mk_agent.override {
+        cmkaVersion = "2.5.0p15";
+      };
+    });
+
+    checks = eachSystem (system: let
+      pkgs = nixpkgs.legacyPackages.${system}.extend self.overlays.default;
+      agent = pkgs.check_mk_agent.override {
+        enablePluginSmart = true;
+        localChecks = [
+          {
+            name = "nixthings-smoke";
+            deps = [pkgs.coreutils];
+            script = ''printf '%s\n' '0 "Nixthings smoke" - Local check works' '';
+          }
+        ];
+      };
+    in {
+      checkmk-agent = pkgs.runCommand "checkmk-agent-smoke" {} ''
+        ${pkgs.bash}/bin/bash -n ${agent}/bin/.check_mk_agent-wrapped
+        ${pkgs.gnugrep}/bin/grep -F 'echo "Version: 2.5.0p15"' ${agent}/bin/.check_mk_agent-wrapped
+        test -x ${agent}/bin/mk-job
+        test -x ${agent}/usr/lib/check_mk_agent/plugins/smart
+        ${agent}/usr/lib/check_mk_agent/local/nixthings-smoke > local-output
+        ${pkgs.gnugrep}/bin/grep -Fx '0 "Nixthings smoke" - Local check works' local-output
+        touch "$out"
+      '';
+    });
+
     lib = {
       inherit ((import ./lib/net.nix {inherit (nixpkgs) lib;}).lib) net;
       math = import ./lib/math.nix;
@@ -52,6 +88,9 @@
     packages = eachSystem (system: let
       pkgs = nixpkgs.legacyPackages.${system};
     in {
+      check_mk_agent = (pkgs.extend self.overlays.default).check_mk_agent.override {
+        enablePluginSmart = true;
+      };
       update-authorized-keys = pkgs.writeScriptBin "update-authorized-keys" ''
         #!${pkgs.python3}/bin/python
 
