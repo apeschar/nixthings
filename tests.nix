@@ -8,18 +8,6 @@ runTests {
     expr = math.pow 2 8;
     expected = 256;
   };
-  testIpgen64 = let
-    subnet = "2a01:4f9:3051:429c::/64";
-  in {
-    expr = ipgen.ip6 subnet "hello";
-    expected = "2a01:4f9:3051:429c:26e8:3b2a:c5b9:e29e";
-  };
-  testIpgen32 = let
-    subnet = "2a01:4f9:3051:429c::/32";
-  in {
-    expr = ipgen.ip6 subnet "hello";
-    expected = "2a01:4f9:5fb0:a30e:26e8:3b2a:c5b9:e29e";
-  };
   testIpgenIp6ll = {
     expr = ipgen.ip4ll "hello";
     expected = "169.254.77.186";

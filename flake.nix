@@ -62,6 +62,10 @@
         ];
       };
     in {
+      lib-tests =
+        if self.tests == []
+        then pkgs.runCommand "lib-tests" {} "touch $out"
+        else throw "lib tests failed: ${builtins.toJSON self.tests}";
       checkmk-agent = pkgs.runCommand "checkmk-agent-smoke" {} ''
         ${pkgs.bash}/bin/bash -n ${agent}/bin/.check_mk_agent-wrapped
         ${pkgs.gnugrep}/bin/grep -F 'echo "Version: 2.5.0p15"' ${agent}/bin/.check_mk_agent-wrapped
