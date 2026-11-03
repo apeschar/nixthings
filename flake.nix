@@ -37,6 +37,7 @@
           ./modules/firewall.nix
           ./modules/postgresql.nix
           ./modules/acme.nix
+          ./modules/persistence.nix
           {users.users.root.openssh.authorizedKeys.keys = self.lib.sshKeys.albert;}
         ];
       };
