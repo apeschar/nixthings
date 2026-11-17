@@ -38,6 +38,7 @@
           ./modules/postgresql.nix
           ./modules/acme.nix
           ./modules/persistence.nix
+          ./modules/local-dns.nix
           {users.users.root.openssh.authorizedKeys.keys = self.lib.sshKeys.albert;}
         ];
       };
@@ -63,6 +64,30 @@
         ];
       };
     in {
+      local-dns = pkgs.testers.runNixOSTest {
+        name = "nixthings-local-dns";
+        nodes.machine = {
+          imports = [./modules/local-dns.nix];
+          nixthings.localDns = {
+            enable = true;
+            # Unreachable; the local zone below must still answer.
+            forwarders = ["192.0.2.1"];
+          };
+          services.unbound.settings.server = {
+            local-zone = [''"dnstest.internal." static''];
+            local-data = [''"host.dnstest.internal. A 192.0.2.10"''];
+          };
+        };
+        testScript = ''
+          machine.wait_for_unit("unbound.service")
+          machine.fail("systemctl is-active systemd-resolved.service")
+          machine.succeed("grep -Fx 'nameserver 127.0.0.1' /etc/resolv.conf")
+          machine.succeed("grep -F 'forward-first: yes' /etc/unbound/unbound.conf")
+          machine.succeed("grep -F 'module-config: \"iterator\"' /etc/unbound/unbound.conf")
+          # The system resolver path (glibc via nscd) goes through unbound.
+          machine.wait_until_succeeds("getent ahosts host.dnstest.internal | grep -F 192.0.2.10")
+        '';
+      };
       lib-tests =
         if self.tests == []
         then pkgs.runCommand "lib-tests" {} "touch $out"
