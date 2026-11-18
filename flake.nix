@@ -82,6 +82,7 @@
           machine.wait_for_unit("unbound.service")
           machine.fail("systemctl is-active systemd-resolved.service")
           machine.succeed("grep -Fx 'nameserver 127.0.0.1' /etc/resolv.conf")
+          machine.succeed("grep -E '^options .*timeout:1' /etc/resolv.conf")
           machine.succeed("grep -F 'forward-first: yes' /etc/unbound/unbound.conf")
           machine.succeed("grep -Fx X-StopIfChanged=false /etc/systemd/system/unbound.service")
           machine.succeed("grep -F 'module-config: \"iterator\"' /etc/unbound/unbound.conf")

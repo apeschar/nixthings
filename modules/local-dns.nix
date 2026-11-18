@@ -43,6 +43,12 @@ in {
     # and start it at the end, leaving the host without DNS meanwhile.
     systemd.services.unbound.stopIfChanged = false;
 
+    # glibc retries a lost UDP query only after its 5s default timeout (seen
+    # once while unbound restarted). The local resolver answers in
+    # milliseconds, so retry after 1s.
+    networking.resolvconf.extraOptions =
+      lib.mkIf cfg.useAsSystemResolver ["timeout:1" "attempts:3"];
+
     services.unbound = {
       enable = true;
       resolveLocalQueries = cfg.useAsSystemResolver;
