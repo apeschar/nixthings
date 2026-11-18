@@ -25,6 +25,11 @@ in {
       '';
     };
 
+    validateDnssec = lib.mkEnableOption ''
+      DNSSEC validation. Off by default: hosts that resolve arbitrary
+      third-party domains (scrapers, host checks) must not turn broken DNSSEC
+      into lookup failures'';
+
     forwarders = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [];
@@ -52,12 +57,13 @@ in {
     services.unbound = {
       enable = true;
       resolveLocalQueries = cfg.useAsSystemResolver;
-      # Match the previous systemd-resolved behaviour (DNSSEC=false): broken
-      # DNSSEC on third-party domains must not turn into lookup failures.
-      enableRootTrustAnchor = false;
+      enableRootTrustAnchor = cfg.validateDnssec;
       settings = {
         server = {
-          module-config = ''"iterator"'';
+          module-config =
+            if cfg.validateDnssec
+            then ''"validator iterator"''
+            else ''"iterator"'';
           num-threads = 4;
           so-reuseport = true;
           msg-cache-size = "64m";

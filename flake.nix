@@ -112,6 +112,26 @@
           machine.succeed("dig +short @127.0.0.1 host.dnstest.internal | grep -Fx 192.0.2.10")
         '';
       };
+      local-dns-dnssec = pkgs.testers.runNixOSTest {
+        name = "nixthings-local-dns-dnssec";
+        nodes.machine = {
+          imports = [./modules/local-dns.nix];
+          nixthings.localDns = {
+            enable = true;
+            validateDnssec = true;
+          };
+          services.unbound.settings.server = {
+            local-zone = [''"dnstest.internal." static''];
+            local-data = [''"host.dnstest.internal. A 192.0.2.10"''];
+          };
+        };
+        testScript = ''
+          machine.wait_for_unit("unbound.service")
+          machine.succeed("grep -F 'validator iterator' /etc/unbound/unbound.conf")
+          machine.succeed("grep -F 'auto-trust-anchor-file:' /etc/unbound/unbound.conf")
+          machine.wait_until_succeeds("getent ahosts host.dnstest.internal | grep -F 192.0.2.10")
+        '';
+      };
       lib-tests =
         if self.tests == []
         then pkgs.runCommand "lib-tests" {} "touch $out"
