@@ -39,6 +39,10 @@ in {
   config = lib.mkIf cfg.enable {
     services.resolved.enable = lib.mkIf cfg.useAsSystemResolver false;
 
+    # A config change would otherwise stop unbound at the start of activation
+    # and start it at the end, leaving the host without DNS meanwhile.
+    systemd.services.unbound.stopIfChanged = false;
+
     services.unbound = {
       enable = true;
       resolveLocalQueries = cfg.useAsSystemResolver;
