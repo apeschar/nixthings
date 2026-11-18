@@ -13,6 +13,18 @@ in {
       upstream does not block lookups. Containers with a private network
       cannot reach the loopback resolver; configure their DNS separately'';
 
+    useAsSystemResolver = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = ''
+        Point /etc/resolv.conf at unbound and disable systemd-resolved. Set
+        to false first when migrating a running host: unbound then starts
+        next to systemd-resolved. Switching resolvers in one step stops
+        systemd-resolved at the start of activation and starts unbound only
+        at the end, leaving the host without DNS for the whole activation.
+      '';
+    };
+
     forwarders = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [];
@@ -25,11 +37,11 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    services.resolved.enable = false;
+    services.resolved.enable = lib.mkIf cfg.useAsSystemResolver false;
 
     services.unbound = {
       enable = true;
-      resolveLocalQueries = true;
+      resolveLocalQueries = cfg.useAsSystemResolver;
       # Match the previous systemd-resolved behaviour (DNSSEC=false): broken
       # DNSSEC on third-party domains must not turn into lookup failures.
       enableRootTrustAnchor = false;

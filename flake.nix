@@ -88,6 +88,28 @@
           machine.wait_until_succeeds("getent ahosts host.dnstest.internal | grep -F 192.0.2.10")
         '';
       };
+      local-dns-side-by-side = pkgs.testers.runNixOSTest {
+        name = "nixthings-local-dns-side-by-side";
+        nodes.machine = {pkgs, ...}: {
+          imports = [./modules/local-dns.nix];
+          environment.systemPackages = [pkgs.dnsutils];
+          services.resolved.enable = true;
+          nixthings.localDns = {
+            enable = true;
+            useAsSystemResolver = false;
+          };
+          services.unbound.settings.server = {
+            local-zone = [''"dnstest.internal." static''];
+            local-data = [''"host.dnstest.internal. A 192.0.2.10"''];
+          };
+        };
+        testScript = ''
+          machine.wait_for_unit("unbound.service")
+          machine.wait_for_unit("systemd-resolved.service")
+          machine.succeed("grep -Fx 'nameserver 127.0.0.53' /etc/resolv.conf")
+          machine.succeed("dig +short @127.0.0.1 host.dnstest.internal | grep -Fx 192.0.2.10")
+        '';
+      };
       lib-tests =
         if self.tests == []
         then pkgs.runCommand "lib-tests" {} "touch $out"
